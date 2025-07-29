@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS and CSP Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        select, input {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>CORS and CSP Test</h1>
+    
+    <div>
+        <h2>Test Configuration</h2>
+        <div>
+            <label for="endpoint">API Endpoint:</label>
+            <select id="endpoint">
+                <option value="https://miscellaneous-kinta.vercel.app/api/generate-dedicated-account-number">Production API</option>
+                <option value="http://localhost:3001/api/generate-dedicated-account-number">Local API</option>
+            </select>
+        </div>
+        <div>
+            <label for="origin">Origin Header:</label>
+            <select id="origin">
+                <option value="https://www.kinta-sme.com">https://www.kinta-sme.com</option>
+                <option value="https://www.kinta-sme-server.vercel.app">https://www.kinta-sme-server.vercel.app</option>
+                <option value="https://miscellaneous-kinta.vercel.app">https://miscellaneous-kinta.vercel.app</option>
+                <option value="https://example.com">https://example.com (Not allowed)</option>
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <h2>Test Actions</h2>
+        <button id="testFetch">Test Fetch API</button>
+        <button id="testXhr">Test XMLHttpRequest</button>
+    </div>
+
+    <div>
+        <h2>Results</h2>
+        <div id="result" class="result">Results will appear here...</div>
+    </div>
+
+    <script>
+        document.getElementById('testFetch').addEventListener('click', async () => {
+            const resultElement = document.getElementById('result');
+            const endpoint = document.getElementById('endpoint').value;
+            const origin = document.getElementById('origin').value;
+            
+            resultElement.textContent = 'Testing with Fetch API...';
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': origin
+                    },
+                    body: JSON.stringify({
+                        userId: 'test-user-id',
+                        signature: 'test-signature'
+                    })
+                });
+                
+                const corsHeaders = {
+                    'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+                    'access-control-allow-methods': response.headers.get('access-control-allow-methods'),
+                    'access-control-allow-headers': response.headers.get('access-control-allow-headers'),
+                    'access-control-allow-credentials': response.headers.get('access-control-allow-credentials')
+                };
+                
+                let responseText = '';
+                try {
+                    const data = await response.json();
+                    responseText = JSON.stringify(data, null, 2);
+                } catch (e) {
+                    responseText = 'Could not parse response as JSON';
+                }
+                
+                resultElement.textContent = `Status: ${response.status}\n\nCORS Headers:\n${JSON.stringify(corsHeaders, null, 2)}\n\nResponse:\n${responseText}`;
+            } catch (error) {
+                resultElement.textContent = `Error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        });
+        
+        document.getElementById('testXhr').addEventListener('click', () => {
+            const resultElement = document.getElementById('result');
+            const endpoint = document.getElementById('endpoint').value;
+            const origin = document.getElementById('origin').value;
+            
+            resultElement.textContent = 'Testing with XMLHttpRequest...';
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', endpoint, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Origin', origin);
+            
+            xhr.onload = function() {
+                let responseText = '';
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    responseText = JSON.stringify(data, null, 2);
+                } catch (e) {
+                    responseText = xhr.responseText || 'No response text';
+                }
+                
+                const corsHeaders = {
+                    'access-control-allow-origin': xhr.getResponseHeader('access-control-allow-origin'),
+                    'access-control-allow-methods': xhr.getResponseHeader('access-control-allow-methods'),
+                    'access-control-allow-headers': xhr.getResponseHeader('access-control-allow-headers'),
+                    'access-control-allow-credentials': xhr.getResponseHeader('access-control-allow-credentials')
+                };
+                
+                resultElement.textContent = `Status: ${xhr.status}\n\nCORS Headers:\n${JSON.stringify(corsHeaders, null, 2)}\n\nResponse:\n${responseText}`;
+            };
+            
+            xhr.onerror = function() {
+                resultElement.textContent = `Error: Network error occurred`;
+                console.error('Network Error');
+            };
+            
+            xhr.send(JSON.stringify({
+                userId: 'test-user-id',
+                signature: 'test-signature'
+            }));
+        });
+    </script>
+</body>
+</html>

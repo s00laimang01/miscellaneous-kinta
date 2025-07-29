@@ -9,8 +9,14 @@ export function middleware(request: NextRequest) {
   // Define allowed origins
   const allowedOrigins = [
     'https://www.kinta-sme.com',
+    'www.kinta-sme.com',
+    'http://www.kinta-sme.com',
     'https://www.kinta-sme-server.vercel.app',
-    'https://miscellaneous-kinta.vercel.app'
+    'www.kinta-sme-server.vercel.app',
+    'http://www.kinta-sme-server.vercel.app',
+    'https://miscellaneous-kinta.vercel.app',
+    'miscellaneous-kinta.vercel.app',
+    'http://miscellaneous-kinta.vercel.app'
   ];
 
   // Check if the origin is allowed
@@ -22,10 +28,13 @@ export function middleware(request: NextRequest) {
   // Set CORS headers if origin is allowed
   if (isAllowedOrigin) {
     response.headers.set('Access-Control-Allow-Origin', origin || '');
-  } else {
-    // For development or unknown origins, you might want to be more permissive
-    // Remove this in production if you want strict CORS
+  } else if (process.env.NODE_ENV === 'development') {
+    // For development, be more permissive
     response.headers.set('Access-Control-Allow-Origin', '*');
+  } else {
+    // For production, only allow specified origins
+    // Default to the first allowed origin if none match
+    response.headers.set('Access-Control-Allow-Origin', allowedOrigins[0]);
   }
 
   // Set other CORS headers

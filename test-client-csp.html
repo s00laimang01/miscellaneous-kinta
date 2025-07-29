@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Test Client</title>
+    <!-- CSP Meta Tag for testing -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app *; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow: auto;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h2 {
+            color: #333;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSP Test Client</h1>
+    <p>This page tests the Content Security Policy configuration for API requests to miscellaneous-kinta.vercel.app</p>
+    
+    <div class="test-section">
+        <h2>Test API Connection</h2>
+        <p>Tests connection to the generate-dedicated-account-number endpoint</p>
+        <button id="testApiBtn">Test API Connection</button>
+        <div id="apiResult" class="result">Results will appear here...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>CSP Information</h2>
+        <p>Current Content-Security-Policy:</p>
+        <div id="cspInfo" class="result">Loading CSP info...</div>
+    </div>
+
+    <script>
+        // Display CSP information
+        document.addEventListener('DOMContentLoaded', function() {
+            const cspInfo = document.getElementById('cspInfo');
+            const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            
+            if (cspMeta) {
+                cspInfo.textContent = cspMeta.getAttribute('content');
+            } else {
+                cspInfo.textContent = 'No CSP meta tag found in this document';
+            }
+        });
+
+        // Test API connection
+        document.getElementById('testApiBtn').addEventListener('click', function() {
+            const apiResult = document.getElementById('apiResult');
+            apiResult.textContent = 'Testing connection...';
+            
+            fetch('https://miscellaneous-kinta.vercel.app/api/generate-dedicated-account-number', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://www.kinta-sme.com'
+                },
+                body: JSON.stringify({
+                    userId: 'test-user-id',
+                    signature: 'test-signature'
+                })
+            })
+            .then(response => {
+                let result = 'Status: ' + response.status + ' ' + response.statusText + '\n\n';
+                
+                // Log all headers
+                result += 'Response Headers:\n';
+                response.headers.forEach((value, key) => {
+                    result += `${key}: ${value}\n`;
+                });
+                
+                return response.text().then(text => {
+                    result += '\nResponse Body:\n' + text;
+                    return result;
+                });
+            })
+            .then(result => {
+                apiResult.innerHTML = '<span class="success">✓ Connection successful</span>\n\n' + result;
+            })
+            .catch(error => {
+                apiResult.innerHTML = '<span class="error">✗ Connection failed</span>\n\n' + error.message;
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

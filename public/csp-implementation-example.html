@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Implementation Example</title>
+    
+    <!-- Option 1: Include the CSP configuration script -->
+    <script src="/csp-config.js"></script>
+    
+    <!-- Option 2: Add CSP meta tag directly -->
+    <!-- Uncomment the line below and comment out the script above to use this method instead -->
+    <!-- 
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app *; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
+    -->
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSP Implementation Example</h1>
+    
+    <h2>About This Page</h2>
+    <p>
+        This page demonstrates how to implement Content Security Policy (CSP) to allow connections 
+        from your website to the Kinta API endpoint. The CSP is configured to allow connections to 
+        <code>https://miscellaneous-kinta.vercel.app</code> while maintaining security for other resources.
+    </p>
+    
+    <h2>Implementation Options</h2>
+    <h3>Option 1: Include CSP Configuration Script</h3>
+    <pre>&lt;script src="/csp-config.js"&gt;&lt;/script&gt;</pre>
+    
+    <h3>Option 2: Add CSP Meta Tag Directly</h3>
+    <pre>&lt;meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app *; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"&gt;</pre>
+    
+    <h3>Option 3: Set HTTP Header (Server-side)</h3>
+    <pre>Content-Security-Policy: default-src 'self'; connect-src 'self' https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app *; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';</pre>
+    
+    <h2>Test API Connection</h2>
+    <p>Click the button below to test the connection to the API endpoint:</p>
+    <button id="testFetch">Test with Fetch API</button>
+    <button id="testXhr">Test with XMLHttpRequest</button>
+    
+    <div id="results">
+        <p>Results will appear here...</p>
+    </div>
+    
+    <script>
+        // Function to display results
+        function displayResults(title, data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<h3>${title}</h3>`;
+            
+            if (typeof data === 'object') {
+                resultsDiv.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                resultsDiv.innerHTML += `<p>${data}</p>`;
+            }
+        }
+        
+        // Test with Fetch API
+        document.getElementById('testFetch').addEventListener('click', async () => {
+            try {
+                displayResults('Testing with Fetch API', 'Sending request...');
+                
+                const response = await fetch('https://miscellaneous-kinta.vercel.app/api/generate-dedicated-account-number', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({
+                        userId: 'test-user',
+                        signature: 'test-signature'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                displayResults('Fetch API Test Results', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Content-Type': response.headers.get('Content-Type')
+                    },
+                    data: data
+                });
+            } catch (error) {
+                displayResults('Fetch API Test Error', error.message);
+                console.error('Error:', error);
+            }
+        });
+        
+        // Test with XMLHttpRequest
+        document.getElementById('testXhr').addEventListener('click', () => {
+            try {
+                displayResults('Testing with XMLHttpRequest', 'Sending request...');
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://miscellaneous-kinta.vercel.app/api/generate-dedicated-account-number', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Origin', window.location.origin);
+                
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            displayResults('XMLHttpRequest Test Results', {
+                                status: xhr.status,
+                                statusText: xhr.statusText,
+                                headers: {
+                                    'Access-Control-Allow-Origin': xhr.getResponseHeader('Access-Control-Allow-Origin'),
+                                    'Content-Type': xhr.getResponseHeader('Content-Type')
+                                },
+                                data: data
+                            });
+                        } catch (e) {
+                            displayResults('XMLHttpRequest Parse Error', e.message);
+                        }
+                    } else {
+                        displayResults('XMLHttpRequest Error', `Status: ${xhr.status} ${xhr.statusText}`);
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    displayResults('XMLHttpRequest Network Error', 'A network error occurred');
+                };
+                
+                xhr.send(JSON.stringify({
+                    userId: 'test-user',
+                    signature: 'test-signature'
+                }));
+            } catch (error) {
+                displayResults('XMLHttpRequest Setup Error', error.message);
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

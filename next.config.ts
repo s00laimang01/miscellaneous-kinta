@@ -13,12 +13,9 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Apply to all routes
         source: '/:path*',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; connect-src 'self' https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
-          },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff'
@@ -30,6 +27,26 @@ const nextConfig: NextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
+          }
+        ]
+      },
+      {
+        // Apply CSP only to API routes
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; connect-src * 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+          }
+        ]
+      },
+      {
+        // Apply CSP for client-side application - more permissive
+        source: '/',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; connect-src 'self' * https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
           }
         ]
       }

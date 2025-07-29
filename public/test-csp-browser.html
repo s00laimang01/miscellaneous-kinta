@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Test Page</title>
+    <!-- Add CSP meta tag to allow connections to any origin -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://miscellaneous-kinta.vercel.app https://www.kinta-sme.com https://www.kinta-sme-server.vercel.app *; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        select, input {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Content Security Policy (CSP) Test Page</h1>
+    <p>This page tests if the CSP configuration allows connections to the API endpoint.</p>
+
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <div>
+            <label for="endpoint">API Endpoint:</label>
+            <select id="endpoint">
+                <option value="https://miscellaneous-kinta.vercel.app/api/generate-dedicated-account-number">Production API</option>
+                <option value="http://localhost:3002/api/generate-dedicated-account-number">Local API (Port 3002)</option>
+            </select>
+        </div>
+        <div>
+            <label for="origin">Origin Header:</label>
+            <select id="origin">
+                <option value="https://www.kinta-sme.com">https://www.kinta-sme.com</option>
+                <option value="http://www.kinta-sme.com">http://www.kinta-sme.com</option>
+                <option value="https://kinta-sme.com">https://kinta-sme.com</option>
+                <option value="http://localhost:3000">http://localhost:3000</option>
+                <option value="https://example.com">https://example.com</option>
+            </select>
+        </div>
+        <div>
+            <label for="method">Test Method:</label>
+            <select id="method">
+                <option value="fetch">Fetch API</option>
+                <option value="xhr">XMLHttpRequest</option>
+            </select>
+        </div>
+        <div style="margin-top: 15px;">
+            <button onclick="runTest()">Run Test</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results" class="result">Results will appear here...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Current CSP Information</h2>
+        <div id="csp-info" class="result">Loading CSP information...</div>
+    </div>
+
+    <script>
+        // Display current CSP information
+        function displayCSPInfo() {
+            const cspElement = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            const cspInfo = document.getElementById('csp-info');
+            
+            if (cspElement) {
+                cspInfo.textContent = `CSP Meta Tag Content:\n${cspElement.getAttribute('content')}`;
+            } else {
+                cspInfo.textContent = 'No CSP meta tag found in this document.';
+            }
+        }
+
+        // Run the test
+        async function runTest() {
+            const endpoint = document.getElementById('endpoint').value;
+            const origin = document.getElementById('origin').value;
+            const method = document.getElementById('method').value;
+            const resultsElement = document.getElementById('results');
+            
+            resultsElement.textContent = `Running test...\nEndpoint: ${endpoint}\nOrigin: ${origin}\nMethod: ${method}\n\n`;
+            
+            try {
+                let response;
+                let responseText;
+                let headers;
+                
+                // Test using Fetch API
+                if (method === 'fetch') {
+                    response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Origin': origin
+                        },
+                        body: JSON.stringify({
+                            userId: 'test-user-id',
+                            signature: 'test-signature'
+                        })
+                    });
+                    
+                    responseText = await response.text();
+                    
+                    // Get headers
+                    headers = {};
+                    response.headers.forEach((value, key) => {
+                        headers[key] = value;
+                    });
+                }
+                // Test using XMLHttpRequest
+                else if (method === 'xhr') {
+                    const xhr = new XMLHttpRequest();
+                    
+                    // Create a Promise to handle the async XHR
+                    const xhrPromise = new Promise((resolve, reject) => {
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 4) {
+                                if (xhr.status >= 200 && xhr.status < 300) {
+                                    resolve({
+                                        status: xhr.status,
+                                        statusText: xhr.statusText,
+                                        responseText: xhr.responseText,
+                                        headers: xhr.getAllResponseHeaders()
+                                    });
+                                } else {
+                                    reject({
+                                        status: xhr.status,
+                                        statusText: xhr.statusText,
+                                        responseText: xhr.responseText,
+                                        headers: xhr.getAllResponseHeaders()
+                                    });
+                                }
+                            }
+                        };
+                    });
+                    
+                    xhr.open('POST', endpoint, true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('Origin', origin);
+                    xhr.send(JSON.stringify({
+                        userId: 'test-user-id',
+                        signature: 'test-signature'
+                    }));
+                    
+                    // Wait for XHR to complete
+                    const result = await xhrPromise;
+                    response = { status: result.status, statusText: result.statusText };
+                    responseText = result.responseText;
+                    
+                    // Parse headers
+                    headers = {};
+                    const headerLines = result.headers.split('\r\n');
+                    for (const line of headerLines) {
+                        if (line) {
+                            const parts = line.split(': ');
+                            if (parts.length === 2) {
+                                headers[parts[0].toLowerCase()] = parts[1];
+                            }
+                        }
+                    }
+                }
+                
+                // Display results
+                let resultText = `Status: ${response.status} ${response.statusText}\n\n`;
+                resultText += 'CORS Headers:\n';
+                resultText += `Access-Control-Allow-Origin: ${headers['access-control-allow-origin'] || 'Not present'}\n`;
+                resultText += `Access-Control-Allow-Methods: ${headers['access-control-allow-methods'] || 'Not present'}\n`;
+                resultText += `Access-Control-Allow-Headers: ${headers['access-control-allow-headers'] || 'Not present'}\n\n`;
+                resultText += 'Response Body:\n';
+                resultText += responseText;
+                
+                resultsElement.textContent = resultText;
+            } catch (error) {
+                resultsElement.textContent += `Error: ${error.message}\n`;
+                console.error('Test error:', error);
+            }
+        }
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('results').textContent = 'Results will appear here...';
+        }
+
+        // Initialize
+        displayCSPInfo();
+    </script>
+</body>
+</html>
