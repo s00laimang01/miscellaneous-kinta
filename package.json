@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "init-cron": "ts-node scripts/init-cron-jobs.ts",
+    "test-cron": "ts-node scripts/test-cron-job.ts"
   },
   "dependencies": {
+    "@upstash/qstash": "^2.8.1",
     "axios": "^1.11.0",
     "mongoose": "^8.16.5",
     "next": "15.4.4",
@@ -25,6 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
