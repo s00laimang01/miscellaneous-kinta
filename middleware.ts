@@ -9,7 +9,8 @@ export function middleware(request: NextRequest) {
   // Define allowed origins
   const allowedOrigins = [
     'https://www.kinta-sme.com',
-    'https://www.kinta-sme-server.vercel.app'
+    'https://www.kinta-sme-server.vercel.app',
+    'https://miscellaneous-kinta.vercel.app'
   ];
 
   // Check if the origin is allowed
