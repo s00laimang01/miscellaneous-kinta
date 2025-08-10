@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
   try {
     const { transaction } = (await request.json()) as ISmePlugWebhook;
 
+    console.log(transaction);
+
     const { status, reference, customer_reference } = transaction;
 
     await connectToDatabase();
