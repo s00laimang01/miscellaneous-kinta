@@ -58,7 +58,7 @@ export interface createDedicatedAccountProps {
 
 //TRANSACTIONS
 
-export type transactionStatus = "success" | "failed" | "pending";
+export type transactionStatus = "success" | "failed" | "pending" | "refunded";
 export type transactionType =
   | "funding"
   | "airtime"
@@ -116,4 +116,17 @@ export interface IUser extends Document {
   sendResetPasswordToken: () => Promise<void>;
   verifyResetPasswordToken: (token: string) => Promise<boolean>;
   resetPassword: (password: string) => Promise<void>;
+}
+
+export interface ISmePlugWebhook {
+  transaction: {
+    status: string;
+    reference: string;
+    customer_reference: string;
+    type: string;
+    beneficiary: string;
+    memo: string;
+    response: string;
+    price: string;
+  };
 }
