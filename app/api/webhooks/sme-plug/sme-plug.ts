@@ -26,7 +26,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (_transaction.status === "success") {
+    if (
+      _transaction.status === "success" ||
+      _transaction.status === "refunded"
+    ) {
       return NextResponse.json(
         {
           message:
