@@ -8,8 +8,6 @@ export async function POST(request: NextRequest) {
   try {
     const { transaction } = (await request.json()) as ISmePlugWebhook;
 
-    console.log(transaction);
-
     const { status, reference, customer_reference } = transaction;
 
     await connectToDatabase();
@@ -62,6 +60,12 @@ export async function POST(request: NextRequest) {
       _transaction.status = "refunded";
 
       await user.save();
+      await _transaction.save();
+    }
+
+    if (status === "success") {
+      _transaction.status = "success";
+
       await _transaction.save();
     }
 
