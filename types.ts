@@ -130,3 +130,38 @@ export interface ISmePlugWebhook {
     price: string;
   };
 }
+
+export interface IVTPassTransactionUpdate {
+  type: "transaction-update";
+  data: {
+    code: string;
+    content: {
+      transactions: {
+        status: string;
+        product_name: string;
+        unique_element: string;
+        unit_price: number;
+        quantity: number;
+        service_verification: null;
+        channel: string;
+        commission: number;
+        total_amount: number;
+        discount: null;
+        type: string;
+        email: string;
+        phone: string;
+        name: null;
+        convinience_fee: number;
+        amount: number;
+        platform: string;
+        method: null;
+        transactionId: string;
+      };
+    };
+    response_description: string;
+    amount: number;
+    transaction_date: string;
+    requestId: string;
+    purchased_code: string;
+  };
+}
