@@ -165,3 +165,43 @@ export interface IVTPassTransactionUpdate {
     purchased_code: string;
   };
 }
+
+export interface appProps extends Document {
+  stopAllTransactions: boolean;
+  stopSomeTransactions: transactionType[];
+  stopAccountCreation: boolean;
+  bankAccountToCreateForUsers: availableBanks | "random";
+  transactionLimit: number;
+  requireUserVerification: boolean;
+  maintenanceMode: boolean;
+  defaultUserRole: IUserRole;
+  systemMessage?: string;
+  apiRateLimit?: number;
+  logLevel?: "error" | "warn" | "info" | "debug" | "trace";
+  force2FA?: boolean;
+  passwordPolicy?: "basic" | "medium" | "strong" | "very-strong";
+  sessionTimeout?: number;
+  adminIpWhitelist?: string[];
+  buyVtu: {
+    accessToken: string;
+    expiredAt: string;
+    url: string;
+  };
+  systemStatus?: {
+    data: {
+      successRate: number;
+      failureRate: number;
+    };
+    airtime: {
+      successRate: number;
+      failureRate: number;
+    };
+  };
+
+  // Methods
+  isTransactionEnable: (transactionType?: transactionType) => Promise<void>;
+  checkTransactionLimit: (amount: number) => Promise<void>;
+  systemIsunderMaintainance: () => Promise<void>;
+  isAccountCreationStopped: () => Promise<void>;
+  refreshAccessToken: () => Promise<string>;
+}
